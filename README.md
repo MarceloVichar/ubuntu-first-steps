@@ -24,7 +24,11 @@ Copie o arquivo ubuntu-first-steps.sh para a pasta home do seu ubuntu
 Abra o terminal (Ctrl + Alt + T)
 
 Dê permissão para o arquivo com o comando
+ ```
   $ chmod +x ubuntu-first-steps.sh
+```
 
 Rode o comando para iniciar o script
+```
   $ ./ubuntu-first-steps.sh
+```
