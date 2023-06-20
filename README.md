@@ -11,7 +11,9 @@ No repositório encontra-se um script que ira instalar e configurar no Ubuntu al
   - Instalação
   - Configuração do OhMyZsh
   - Instalação do tema agnoster
-
+ 
+* Docker
+* Docker Compose
 * NPM
 * NVM (Com a versão 16.15.1 do NODE)
 * Yarn
