@@ -1,16 +1,16 @@
 #!/bin/bash
 
+sudo apt update
+
 # Verifica se o Zsh já está instalado
 if ! command -v zsh &> /dev/null; then
     echo "Instalando Zsh..."
-    sudo apt update
     sudo apt install zsh -y
 fi
 
 # Verifica se o Git já está instalado
 if ! command -v git &> /dev/null; then
     echo "Instalando Git..."
-    sudo apt update
     sudo apt install git -y
 fi
 
@@ -31,16 +31,9 @@ fi
 
 # Instala o Node.js com o NVM
 echo "Instalando Node.js..."
-nvm install 16.15.1
-nvm use 16.15.1
-nvm alias default 16.15.1
-
-# Verifica se o NPM já está instalado
-if ! command -v npm &> /dev/null; then
-    echo "Instalando NPM..."
-    sudo apt update
-    sudo apt install npm -y
-fi
+nvm install 16
+nvm use 16
+nvm alias default 16
 
 # Instala o Yarn
 echo "Instalando Yarn..."
@@ -59,7 +52,6 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 # Instala o Visual Studio Code (VSCode)
 echo "Instalando Visual Studio Code (VSCode)..."
-sudo apt update
 sudo apt install software-properties-common apt-transport-https wget -y
 wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | gpg --dearmor > packages.microsoft.gpg
 sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
@@ -78,7 +70,7 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_rsa
 
 # Mostra a chave pública para copiar e adicionar ao GitHub
-echo "A chave pública SSH foi gerada. Copie a saída abaixo e adicione-a ao GitHub:"
+echo "A chave pública SSH foi gerada. Copie a saída abaixo e adicione-a ao GitHub (https://github.com/settings/ssh/new):"
 echo ""
 cat ~/.ssh/id_rsa.pub
 echo ""
@@ -92,11 +84,11 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 
 # Define o tema Agnoster
 echo "Configurando tema Agnoster..."
+sudo apt install fonts-powerline -y
 sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' ~/.zshrc
 
 # Define o Zsh como shell padrão
 echo "Definindo Zsh como shell padrão..."
 chsh -s $(which zsh)
 
-echo "Script concluído!"
-
+echo "Script concluído! Você precisa reiniciar o computador para aplicar todas as alterações"
