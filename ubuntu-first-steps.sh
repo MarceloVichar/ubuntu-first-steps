@@ -31,7 +31,7 @@ git config --global user.email "$git_email"
 # Verifica se o NVM já está instalado
 if ! command -v nvm &> /dev/null; then
     echo "Instalando NVM..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+    curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash 
     source ~/.bashrc
 fi
 
@@ -91,7 +91,7 @@ read
 
 # Instala o Oh My Zsh
 echo "Instalando Oh My Zsh..."
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+echo -e "\n" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Define o tema Agnoster
 echo "Configurando tema Agnoster..."
