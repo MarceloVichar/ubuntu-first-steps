@@ -1,5 +1,17 @@
 #!/bin/bash
 
+sudo -v
+
+# Verifica se a autenticação foi bem-sucedida
+if [ $? -eq 0 ]; then
+    echo "Autenticação bem-sucedida. Continuando a execução do script..."
+
+    # Agora você pode continuar com o restante do script
+else
+    echo "Falha na autenticação. Certifique-se de fornecer a senha correta."
+    exit 1
+fi
+
 sudo apt update
 
 # Verifica se o Zsh já está instalado
