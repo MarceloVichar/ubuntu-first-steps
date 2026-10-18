@@ -251,6 +251,10 @@ fc-cache -f "$FONT_DIR" >/dev/null
 # fonte monoespaçada do sistema (o terminal Ptyxis usa ela por padrão)
 gsettings set org.gnome.desktop.interface monospace-font-name "MesloLGS NF 11"
 gsettings set org.gnome.Ptyxis use-system-font true 2>/dev/null || true
+# Copiar/colar sem Shift no terminal. Seguro: o Ptyxis desativa "copiar" quando não
+# há seleção, então Ctrl+C sem nada selecionado continua interrompendo o programa.
+gsettings set org.gnome.Ptyxis.Shortcuts copy-clipboard  '<ctrl>c' 2>/dev/null || true
+gsettings set org.gnome.Ptyxis.Shortcuts paste-clipboard '<ctrl>v' 2>/dev/null || true
 # terminal integrado do VS Code
 VSC="$HOME/.config/Code/User/settings.json"
 mkdir -p "$(dirname "$VSC")"; [[ -s $VSC ]] || echo '{}' > "$VSC"
@@ -260,6 +264,23 @@ p = sys.argv[1]
 s = json.load(open(p))
 s["terminal.integrated.fontFamily"] = "MesloLGS NF"
 json.dump(s, open(p, "w"), indent=4)
+PY
+# terminal do VS Code: Ctrl+C copia só com seleção (senão interrompe), Ctrl+V cola
+VSK="$HOME/.config/Code/User/keybindings.json"
+[[ -s $VSK ]] || echo '[]' > "$VSK"
+python3 - "$VSK" <<'PY' || warn "Não consegui editar $VSK (tem comentários?)"
+import json, sys
+p = sys.argv[1]
+kb = json.load(open(p))
+want = [
+    {"key": "ctrl+c", "command": "workbench.action.terminal.copySelection",
+     "when": "terminalFocus && terminalTextSelected"},
+    {"key": "ctrl+v", "command": "workbench.action.terminal.paste", "when": "terminalFocus"},
+]
+for w in want:
+    if w not in kb:
+        kb.append(w)
+json.dump(kb, open(p, "w"), indent=4)
 PY
 
 # ----------------------------------------------------------------- NVM + Node

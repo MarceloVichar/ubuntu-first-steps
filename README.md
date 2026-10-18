@@ -17,6 +17,7 @@ Script que prepara um Ubuntu novo para desenvolvimento, de forma não interativa
 | **Oh My Zsh** | modo `--unattended` | Corrige o instalador que abria um zsh e travava o script |
 | Tema **agnoster** | `DEFAULT_USER` definido | Esconde `usuario@maquina` no prompt |
 | Fonte **MesloLGS NF** | `~/.local/share/fonts`, definida como fonte monoespaçada do sistema e no terminal do VS Code | Derivada da Menlo (fonte do Terminal do macOS), com os símbolos do agnoster embutidos |
+| **Copiar/colar sem Shift** | Terminal (Ptyxis) e terminal do VS Code: `Ctrl+C` / `Ctrl+V` | `Ctrl+C` só copia se houver seleção; sem seleção, continua interrompendo o programa |
 | PATH no zsh | `~/.local/bin` no `.zshrc`; `.zprofile` carrega `/etc/profile` e `~/.profile`; `~/.config/environment.d` para a sessão gráfica | Sem isso, o `claude` e outras ferramentas instaladas em `~/.local/bin` não aparecem no zsh |
 | **Variáveis de ambiente** | `~/.env` (chmod 600), carregado pelo `~/.zshenv` | Lido por todo zsh: terminal, scripts, comandos não interativos e Claude Code |
 | **Teclado** | `br` / `abnt2` na sessão (gsettings), na tela de login e no console (`localectl`) | Mude com `KB_LAYOUT` / `KB_MODEL` |
