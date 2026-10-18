@@ -26,8 +26,7 @@ Script que prepara um Ubuntu novo para desenvolvimento, de forma não interativa
 | **Yarn / pnpm** | Corepack | Respeita o campo `packageManager` de cada projeto |
 | **Docker Engine + Compose v2** | repo oficial `download.docker.com` | Usuário adicionado ao grupo `docker`. Daemon **sob demanda** (`docker.socket`) |
 | **VS Code** | repo oficial da Microsoft | |
-| **Claude Code** e **omp** (oh-my-pi) | instaladores oficiais (`claude.ai/install.sh`, `omp.sh/install`), se faltarem | Instruções globais compartilhadas, skills do Claude no omp, modo sem aprovações |
-| **Claude Code + omp** | instaladores oficiais; `~/.omp/agent/AGENTS.md` aponta para `~/.claude/CLAUDE.md` | O navegador do omp usa o seu Chrome (perfil e logins) via relay. Passo manual único: em `chrome://extensions`, ative o Modo do desenvolvedor, clique em "Carregar sem compactação" e escolha `~/.omp/browser-relay/extension` |
+| **Claude Code** e **omp** (oh-my-pi) | instaladores oficiais (`claude.ai/install.sh`, `omp.sh/install`), se faltarem | Instruções globais compartilhadas, skills do Claude no omp, modo sem aprovações. O navegador do omp usa o seu Chrome (perfil e logins) via relay; passo manual único: em `chrome://extensions`, ative o Modo do desenvolvedor, clique em "Carregar sem compactação" e escolha `~/.omp/browser-relay/extension` |
 
 Os repositórios usam o formato moderno do apt (`.sources`, deb822) com chave GPG em `signed-by`, sem `apt-key`.
 
