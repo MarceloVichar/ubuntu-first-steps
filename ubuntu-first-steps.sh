@@ -11,7 +11,8 @@
 #     ./ubuntu-first-steps.sh
 #     GIT_NAME="Fulano" GIT_EMAIL="fulano@x.com" ./ubuntu-first-steps.sh
 #     ./ubuntu-first-steps.sh --skip-system   # só reaplica configs do usuário (sem senha)
-#     ./ubuntu-first-steps.sh --sudo-sem-senha # também libera sudo sem senha (PC pessoal)
+#     ./ubuntu-first-steps.sh --sudo-sem-senha # libera sudo e pkexec sem senha (PC pessoal)
+#     KB_LAYOUT=us KB_MODEL=pc105 ./ubuntu-first-steps.sh   # outro teclado (padrão: br abnt2)
 #
 #  Nenhuma versão é fixada: Node sempre na LTS vigente, NVM na última release,
 #  demais pacotes pelos repositórios oficiais. Pode ser executado várias vezes.
@@ -20,6 +21,8 @@ set -euo pipefail
 
 GIT_NAME="${GIT_NAME:-MarceloVichar}"
 GIT_EMAIL="${GIT_EMAIL:-marcos.marcelo43@gmail.com}"
+KB_LAYOUT="${KB_LAYOUT:-br}"      # layout do teclado (br = Português Brasil)
+KB_MODEL="${KB_MODEL:-abnt2}"     # modelo físico (abnt2 = teclado brasileiro com Ç)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m[aviso]\033[0m %s\n' "$*"; }
@@ -41,7 +44,21 @@ if [[ ${1:-} == --system ]]; then
     printf '# Criado por ubuntu-first-steps: sudo sem senha (PC pessoal). Apague para desfazer.\n%s ALL=(ALL:ALL) NOPASSWD: ALL\n' "$TARGET_USER" > "$f.tmp"
     if visudo -cf "$f.tmp" >/dev/null; then install -m 0440 "$f.tmp" "$f"; fi   # só instala se for válido
     rm -f "$f.tmp"
+    # pkexec / janelas de administrador do GNOME (polkit) sem senha, só na sessão local ativa
+    cat > "/etc/polkit-1/rules.d/49-nopasswd-$TARGET_USER.rules" <<EOF
+// Criado por ubuntu-first-steps: ações administrativas sem senha para $TARGET_USER
+// (somente na sessão local ativa; via ssh continua pedindo). Apague para desfazer.
+polkit.addRule(function(action, subject) {
+    if (subject.user == "$TARGET_USER" && subject.local && subject.active) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+    chmod 644 "/etc/polkit-1/rules.d/49-nopasswd-$TARGET_USER.rules"
   fi
+
+  log "Teclado do sistema: ${4:-br} ${5:-abnt2} (tela de login e console)"
+  localectl set-x11-keymap "${4:-br}" "${5:-abnt2}" || warn "localectl falhou"
 
   log "Atualizando o sistema"
   apt-get update -qq
@@ -130,9 +147,13 @@ if (( SKIP_SYSTEM )); then
   log "Pulando etapa de sistema (--skip-system)"
 else
   log "Etapa de sistema (pede sua senha uma vez, se o sudo exigir)"
-  if sudo -n true 2>/dev/null || [[ -t 0 ]]; then sudo bash "$SELF" --system "$USER" "$NOPASSWD"
-  else pkexec bash "$SELF" --system "$USER" "$NOPASSWD"; fi   # sem terminal: janela gráfica de senha
+  if sudo -n true 2>/dev/null || [[ -t 0 ]]; then sudo bash "$SELF" --system "$USER" "$NOPASSWD" "$KB_LAYOUT" "$KB_MODEL"
+  else pkexec bash "$SELF" --system "$USER" "$NOPASSWD" "$KB_LAYOUT" "$KB_MODEL"; fi   # sem terminal: janela gráfica de senha
 fi
+
+# -------------------------------------------------------------------- Teclado
+log "Teclado da sessão: $KB_LAYOUT"
+gsettings set org.gnome.desktop.input-sources sources "[('xkb', '$KB_LAYOUT')]"
 
 # ------------------------------------------------------------------------ Git
 log "Configurando Git ($GIT_NAME <$GIT_EMAIL>)"
@@ -190,6 +211,25 @@ if ! grep -q "ubuntu-first-steps" "$HOME/.zprofile" 2>/dev/null; then
 [[ -r /etc/profile ]] && emulate sh -c '. /etc/profile'
 [[ -r ~/.profile ]] && emulate sh -c '. ~/.profile'
 ZPROFILE
+fi
+
+# Variáveis de ambiente pessoais: ~/.env (chmod 600), carregado pelo ~/.zshenv,
+# que o zsh lê em TODA execução (terminal, scripts, comandos não interativos, Claude Code)
+if [[ ! -f $HOME/.env ]]; then
+  cat > "$HOME/.env" <<'ENVFILE'
+# Variáveis de ambiente pessoais (carregadas por todo zsh via ~/.zshenv).
+# Formato: NOME=valor   (uma por linha; use aspas se tiver espaços)
+# Exemplo:
+# OPENAI_API_KEY=sk-...
+# DATABASE_URL="postgres://user:pass@localhost:5432/db"
+ENVFILE
+fi
+chmod 600 "$HOME/.env"
+if ! grep -q "ubuntu-first-steps" "$HOME/.zshenv" 2>/dev/null; then
+  cat >> "$HOME/.zshenv" <<'ZSHENV'
+# ubuntu-first-steps: variáveis pessoais (export automático de tudo em ~/.env)
+[[ -r ~/.env ]] && { set -a; source ~/.env; set +a; }
+ZSHENV
 fi
 
 # Sessão gráfica: apps abertos pelo Dock/menu (VS Code etc.) também enxergam ~/.local/bin

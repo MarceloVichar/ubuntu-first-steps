@@ -18,6 +18,8 @@ Script que prepara um Ubuntu novo para desenvolvimento, de forma não interativa
 | Tema **agnoster** | `DEFAULT_USER` definido | Esconde `usuario@maquina` no prompt |
 | Fonte **MesloLGS NF** | `~/.local/share/fonts`, definida como fonte monoespaçada do sistema e no terminal do VS Code | Derivada da Menlo (fonte do Terminal do macOS), com os símbolos do agnoster embutidos |
 | PATH no zsh | `~/.local/bin` no `.zshrc`; `.zprofile` carrega `/etc/profile` e `~/.profile`; `~/.config/environment.d` para a sessão gráfica | Sem isso, o `claude` e outras ferramentas instaladas em `~/.local/bin` não aparecem no zsh |
+| **Variáveis de ambiente** | `~/.env` (chmod 600), carregado pelo `~/.zshenv` | Lido por todo zsh: terminal, scripts, comandos não interativos e Claude Code |
+| **Teclado** | `br` / `abnt2` na sessão (gsettings), na tela de login e no console (`localectl`) | Mude com `KB_LAYOUT` / `KB_MODEL` |
 | Plugins | `git docker docker-compose nvm npm gh zsh-autosuggestions zsh-syntax-highlighting` | |
 | **NVM** | última tag estável, via `git ls-remote` (sem limite da API) | Carregado sob demanda: o terminal abre rápido |
 | **Node.js** | `nvm install --lts` + npm mais recente | `default -> lts/*` |
@@ -40,15 +42,22 @@ Para reaplicar só as configurações do usuário (zsh, fonte, Node, GitHub), se
 ./ubuntu-first-steps.sh --skip-system
 ```
 
-Para também liberar **sudo sem senha** (só em PC pessoal: qualquer programa do seu usuário vira root sem confirmação):
+Para também liberar **sudo e pkexec sem senha** (só em PC pessoal: qualquer programa do seu usuário vira root sem confirmação):
 
 ```bash
 ./ubuntu-first-steps.sh --sudo-sem-senha
 # para desfazer:
-sudo rm /etc/sudoers.d/90-nopasswd-$USER
+sudo rm /etc/sudoers.d/90-nopasswd-$USER /etc/polkit-1/rules.d/49-nopasswd-$USER.rules
 ```
 
-O arquivo é validado com `visudo -c` antes de ser instalado, então um erro nele não quebra o sudo.
+- **sudo**: o arquivo em `/etc/sudoers.d` é validado com `visudo -c` antes de ser instalado, então um erro nele não quebra o sudo.
+- **pkexec** e janelas de administrador do GNOME: regra do polkit válida **só na sessão local ativa**. Via ssh, a senha continua sendo pedida.
+
+Outro teclado (o padrão é o brasileiro ABNT2):
+
+```bash
+KB_LAYOUT=us KB_MODEL=pc105 ./ubuntu-first-steps.sh
+```
 
 Para outra pessoa ou outro email:
 
@@ -62,6 +71,20 @@ Ao rodar:
 3. Faça **logout/login** ou reinicie. Só então valem o Zsh como padrão e o grupo `docker`.
 
 O script termina com uma **verificação** de shell padrão, grupo docker, SSH com GitHub, `gh` e versões instaladas.
+
+## Variáveis de ambiente (`~/.env`)
+
+Coloque as suas variáveis em `~/.env`, uma por linha:
+
+```bash
+OPENAI_API_KEY=sk-...
+DATABASE_URL="postgres://user:pass@localhost:5432/db"
+```
+
+Elas são exportadas automaticamente em **todo** zsh: terminal, scripts e comandos não interativos (inclusive os que o Claude Code executa). O arquivo tem permissão `600`, então só o seu usuário consegue ler.
+
+- Apps abertos pelo Dock/menu **não** leem esse arquivo. Para variáveis que eles precisem ver, use `~/.config/environment.d/*.conf` (vale a partir do próximo login).
+- Não guarde a senha do sistema aqui. Com `--sudo-sem-senha` ela não é necessária, e uma variável de ambiente fica visível para todos os processos filhos.
 
 ## Docker sob demanda
 
