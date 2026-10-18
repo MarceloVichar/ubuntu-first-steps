@@ -26,6 +26,8 @@ Script que prepara um Ubuntu novo para desenvolvimento, de forma não interativa
 | **Yarn / pnpm** | Corepack | Respeita o campo `packageManager` de cada projeto |
 | **Docker Engine + Compose v2** | repo oficial `download.docker.com` | Usuário adicionado ao grupo `docker`. Daemon **sob demanda** (`docker.socket`) |
 | **VS Code** | repo oficial da Microsoft | |
+| **Claude Code** e **omp** (oh-my-pi) | instaladores oficiais (`claude.ai/install.sh`, `omp.sh/install`), se faltarem | Instruções globais compartilhadas, skills do Claude no omp, modo sem aprovações |
+| **Claude Code + omp** | instaladores oficiais; `~/.omp/agent/AGENTS.md` aponta para `~/.claude/CLAUDE.md` | O navegador do omp usa o seu Chrome (perfil e logins) via relay. Passo manual único: em `chrome://extensions`, ative o Modo do desenvolvedor, clique em "Carregar sem compactação" e escolha `~/.omp/browser-relay/extension` |
 
 Os repositórios usam o formato moderno do apt (`.sources`, deb822) com chave GPG em `signed-by`, sem `apt-key`.
 
@@ -85,6 +87,24 @@ Elas são exportadas automaticamente em **todo** zsh: terminal, scripts e comand
 
 - Apps abertos pelo Dock/menu **não** leem esse arquivo. Para variáveis que eles precisem ver, use `~/.config/environment.d/*.conf` (vale a partir do próximo login).
 - Não guarde a senha do sistema aqui. Com `--sudo-sem-senha` ela não é necessária, e uma variável de ambiente fica visível para todos os processos filhos.
+
+## Claude Code e omp: instruções compartilhadas
+
+Os dois agentes leem **o mesmo arquivo** de instruções globais:
+
+```
+~/.claude/CLAUDE.md            ← lido pelo Claude Code
+~/.omp/agent/AGENTS.md  ──→    link simbólico para o arquivo acima (lido pelo omp)
+```
+
+Ele diz quem é o usuário, em que idioma responder, que o sudo não pede senha, onde ficam as variáveis (`~/.env`) e que toda mudança no sistema deve entrar nestes scripts. O modelo está em [`claude/CLAUDE.md`](claude/CLAUDE.md). Numa máquina nova ele é copiado só se ainda não existir um, para não sobrescrever edições locais.
+
+O omp também é configurado com:
+- `skills.enableClaudeUser` e `commands.enableClaudeUser`: usa as skills e comandos de `~/.claude/`
+- `tools.approvalMode = yolo`: não pede aprovação a cada comando
+- Modelo padrão `anthropic/claude-opus-5-5`
+
+Para continuar no omp uma conversa começada no Claude Code: `omp --from-claude`.
 
 ## Docker sob demanda
 

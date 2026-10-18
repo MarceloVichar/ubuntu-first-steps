@@ -285,6 +285,30 @@ npm install -g corepack@latest >/dev/null
 corepack enable
 COREPACK_ENABLE_DOWNLOAD_PROMPT=0 yarn --version >/dev/null && echo "Yarn $(COREPACK_ENABLE_DOWNLOAD_PROMPT=0 yarn --version)"
 
+# ----------------------------------------------------------- Claude Code + omp
+log "Claude Code e omp (oh-my-pi)"
+export PATH="$HOME/.local/bin:$PATH"
+command -v claude >/dev/null || curl -fsSL https://claude.ai/install.sh | bash </dev/null
+command -v omp    >/dev/null || curl -fsSL https://omp.sh/install | sh </dev/null
+# Instruções globais compartilhadas: um único arquivo lido pelos dois agentes.
+# Não sobrescreve se já existir (preserva edições locais).
+REPO_DIR="$(dirname "$SELF")"
+mkdir -p "$HOME/.claude" "$HOME/.omp/agent"
+[[ -f $HOME/.claude/CLAUDE.md ]] || cp "$REPO_DIR/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+ln -sfn "$HOME/.claude/CLAUDE.md" "$HOME/.omp/agent/AGENTS.md"   # omp lê ~/.omp/agent/AGENTS.md
+if command -v omp >/dev/null; then
+  omp config set skills.enableClaudeUser true   >/dev/null   # skills de ~/.claude/skills
+  omp config set commands.enableClaudeUser true >/dev/null   # comandos de ~/.claude/commands
+  omp config set tools.approvalMode yolo        >/dev/null   # sem pedir aprovação a cada comando
+  omp config set modelRoles.default anthropic/claude-opus-5-5 >/dev/null 2>&1 || true
+  # navegador do omp usa o Chrome do dia a dia (perfil, logins) via extensão relay;
+  # carregar a extensão no Chrome é manual (ver README)
+  omp browser-relay install >/dev/null
+  omp config set browser.relay true             >/dev/null
+  omp token anthropic >/dev/null 2>&1 || warn "omp sem login na Anthropic: rode 'omp login' uma vez"
+fi
+command -v claude >/dev/null && { claude --version >/dev/null 2>&1 || true; }
+
 # ---------------------------------------------------------------- GitHub CLI
 log "Conectando ao GitHub"
 # Em instalação nova o chaveiro "Login" do GNOME só passa a existir depois do
@@ -331,6 +355,7 @@ systemctl is-enabled -q docker.socket && ok "Docker sob demanda (docker.socket)"
 sshout="$(ssh -T -o BatchMode=yes git@github.com 2>&1 || true)"   # ssh -T sempre sai com código 1
 [[ $sshout == *"successfully authenticated"* ]] && ok "SSH com GitHub" || fail "SSH com GitHub: $sshout"
 gh auth status -h github.com >/dev/null 2>&1 && ok "GitHub CLI autenticado" || fail "GitHub CLI não autenticado"
+[[ -L $HOME/.omp/agent/AGENTS.md && -f $HOME/.claude/CLAUDE.md ]] && ok "omp e Claude Code com as mesmas instruções globais (~/.claude/CLAUDE.md)" || fail "Instruções globais do omp/Claude não configuradas"
 ok "Node $(node -v), npm $(npm -v), Docker $(docker --version | awk '{print $3}' | tr -d ,), VS Code $(code --version | head -1)"
 
 log "Pronto!"
